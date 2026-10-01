@@ -1,0 +1,436 @@
+[
+ {
+  "n": 1,
+  "journey": "guest",
+  "group": "entry",
+  "name": "Home — guest",
+  "file": "01-home-guest.png"
+ },
+ {
+  "n": 2,
+  "journey": "guest",
+  "group": "entry",
+  "name": "Login",
+  "file": "02-login.png"
+ },
+ {
+  "n": 3,
+  "journey": "guest",
+  "group": "entry",
+  "name": "Login gate",
+  "file": "03-login-gate.png"
+ },
+ {
+  "n": 4,
+  "journey": "guest",
+  "group": "entry",
+  "name": "Login — check your email",
+  "file": "04-login-check-your-email.png"
+ },
+ {
+  "n": 5,
+  "journey": "parent-onboarding",
+  "group": "onb",
+  "name": "Onboarding — child name",
+  "file": "05-onboarding-child-name.png"
+ },
+ {
+  "n": 6,
+  "journey": "parent-onboarding",
+  "group": "onb",
+  "name": "Onboarding — birth year",
+  "file": "06-onboarding-birth-year.png"
+ },
+ {
+  "n": 7,
+  "journey": "parent-onboarding",
+  "group": "onb",
+  "name": "Onboarding — soccer background",
+  "file": "07-onboarding-soccer-background.png"
+ },
+ {
+  "n": 8,
+  "journey": "parent-onboarding",
+  "group": "onb",
+  "name": "Onboarding — training frequency",
+  "file": "08-onboarding-training-frequency.png"
+ },
+ {
+  "n": 9,
+  "journey": "parent-onboarding",
+  "group": "onb",
+  "name": "Onboarding — goals",
+  "file": "09-onboarding-goals.png"
+ },
+ {
+  "n": 10,
+  "journey": "parent-onboarding",
+  "group": "onb",
+  "name": "Onboarding — experience",
+  "file": "10-onboarding-experience.png"
+ },
+ {
+  "n": 11,
+  "journey": "parent-onboarding",
+  "group": "onb",
+  "name": "Onboarding — ambitions",
+  "file": "11-onboarding-ambitions.png"
+ },
+ {
+  "n": 12,
+  "journey": "parent-onboarding",
+  "group": "onb",
+  "name": "Onboarding — profile ready",
+  "file": "12-onboarding-profile-ready.png"
+ },
+ {
+  "n": 13,
+  "journey": "parent-booking",
+  "group": "book",
+  "name": "Home — returning",
+  "file": "13-home-returning.png"
+ },
+ {
+  "n": 14,
+  "journey": "parent-booking",
+  "group": "book",
+  "name": "Search",
+  "file": "14-search.png"
+ },
+ {
+  "n": 15,
+  "journey": "parent-booking",
+  "group": "book",
+  "name": "Search — empty",
+  "file": "15-search-empty.png"
+ },
+ {
+  "n": 16,
+  "journey": "parent-booking",
+  "group": "book",
+  "name": "Search — loading",
+  "file": "16-search-loading.png"
+ },
+ {
+  "n": 17,
+  "journey": "parent-booking",
+  "group": "book",
+  "name": "Trainer profile",
+  "file": "17-trainer-profile.png"
+ },
+ {
+  "n": 18,
+  "journey": "parent-booking",
+  "group": "book",
+  "name": "Trainer profile + booking sheet",
+  "file": "18-trainer-profile-plus-booking-sheet.png"
+ },
+ {
+  "n": 19,
+  "journey": "parent-booking",
+  "group": "book",
+  "name": "Booking sheet — fully booked",
+  "file": "19-booking-sheet-fully-booked.png"
+ },
+ {
+  "n": 20,
+  "journey": "parent-booking",
+  "group": "book",
+  "name": "Booking sheet — no hours (none_declared)",
+  "file": "20-booking-sheet-no-hours-none-declared.png"
+ },
+ {
+  "n": 21,
+  "journey": "parent-booking",
+  "group": "book",
+  "name": "Booking sheet — fully requested (at_capacity)",
+  "file": "21-booking-sheet-fully-requested-at-capacity.png"
+ },
+ {
+  "n": 22,
+  "journey": "parent-booking",
+  "group": "book",
+  "name": "Checkout",
+  "file": "22-checkout.png"
+ },
+ {
+  "n": 23,
+  "journey": "parent-booking",
+  "group": "book",
+  "name": "Checkout — hold expired",
+  "file": "23-checkout-hold-expired.png"
+ },
+ {
+  "n": 24,
+  "journey": "parent-booking",
+  "group": "book",
+  "name": "Booking requested",
+  "file": "24-booking-requested.png"
+ },
+ {
+  "n": 25,
+  "journey": "parent-after",
+  "group": "after",
+  "name": "Sessions",
+  "file": "25-sessions.png"
+ },
+ {
+  "n": 26,
+  "journey": "parent-after",
+  "group": "after",
+  "name": "Sessions — empty",
+  "file": "26-sessions-empty.png"
+ },
+ {
+  "n": 27,
+  "journey": "parent-after",
+  "group": "after",
+  "name": "Sessions — completed & cancelled",
+  "file": "27-sessions-completed-and-cancelled.png"
+ },
+ {
+  "n": 28,
+  "journey": "parent-after",
+  "group": "after",
+  "name": "Messages",
+  "file": "28-messages.png"
+ },
+ {
+  "n": 29,
+  "journey": "parent-after",
+  "group": "after",
+  "name": "Messages — empty thread",
+  "file": "29-messages-empty-thread.png"
+ },
+ {
+  "n": 30,
+  "journey": "parent-after",
+  "group": "after",
+  "name": "Review",
+  "file": "30-review.png"
+ },
+ {
+  "n": 31,
+  "journey": "parent-after",
+  "group": "after",
+  "name": "Review — thanks",
+  "file": "31-review-thanks.png"
+ },
+ {
+  "n": 32,
+  "journey": "parent-after",
+  "group": "after",
+  "name": "Learn",
+  "file": "32-learn.png"
+ },
+ {
+  "n": 33,
+  "journey": "parent-after",
+  "group": "after",
+  "name": "Portal",
+  "file": "33-portal.png"
+ },
+ {
+  "n": 34,
+  "journey": "parent-after",
+  "group": "after",
+  "name": "Events",
+  "file": "34-events.png"
+ },
+ {
+  "n": 35,
+  "journey": "parent-after",
+  "group": "after",
+  "name": "Store",
+  "file": "35-store.png"
+ },
+ {
+  "n": 36,
+  "journey": "parent-after",
+  "group": "after",
+  "name": "Store — success",
+  "file": "36-store-success.png"
+ },
+ {
+  "n": 37,
+  "journey": "parent-after",
+  "group": "after",
+  "name": "Account",
+  "file": "37-account.png"
+ },
+ {
+  "n": 38,
+  "journey": "parent-after",
+  "group": "after",
+  "name": "Invite",
+  "file": "38-invite.png"
+ },
+ {
+  "n": 39,
+  "journey": "parent-after",
+  "group": "after",
+  "name": "Invite — unavailable",
+  "file": "39-invite-unavailable.png"
+ },
+ {
+  "n": 40,
+  "journey": "trainer",
+  "group": "trainer",
+  "name": "Join — trainer signup",
+  "file": "40-join-trainer-signup.png"
+ },
+ {
+  "n": 41,
+  "journey": "trainer",
+  "group": "trainer",
+  "name": "Trainer onboarding — profile basics",
+  "file": "41-trainer-onboarding-profile-basics.png"
+ },
+ {
+  "n": 42,
+  "journey": "trainer",
+  "group": "trainer",
+  "name": "Trainer onboarding — photo & philosophy",
+  "file": "42-trainer-onboarding-photo-and-philosophy.png"
+ },
+ {
+  "n": 43,
+  "journey": "trainer",
+  "group": "trainer",
+  "name": "Trainer onboarding — rate, experience & location",
+  "file": "43-trainer-onboarding-rate-experience-and-location.png"
+ },
+ {
+  "n": 44,
+  "journey": "trainer",
+  "group": "trainer",
+  "name": "Trainer onboarding — specializations",
+  "file": "44-trainer-onboarding-specializations.png"
+ },
+ {
+  "n": 45,
+  "journey": "trainer",
+  "group": "trainer",
+  "name": "Trainer onboarding — age groups & certifications",
+  "file": "45-trainer-onboarding-age-groups-and-certifications.png"
+ },
+ {
+  "n": 46,
+  "journey": "trainer",
+  "group": "trainer",
+  "name": "Trainer onboarding — availability",
+  "file": "46-trainer-onboarding-availability.png"
+ },
+ {
+  "n": 47,
+  "journey": "trainer",
+  "group": "trainer",
+  "name": "Trainer onboarding — background check",
+  "file": "47-trainer-onboarding-background-check.png"
+ },
+ {
+  "n": 48,
+  "journey": "trainer",
+  "group": "trainer",
+  "name": "Trainer onboarding — profile preview",
+  "file": "48-trainer-onboarding-profile-preview.png"
+ },
+ {
+  "n": 49,
+  "journey": "trainer",
+  "group": "trainer",
+  "name": "Trainer onboarding — profile submitted",
+  "file": "49-trainer-onboarding-profile-submitted.png"
+ },
+ {
+  "n": 50,
+  "journey": "trainer",
+  "group": "trainer",
+  "name": "Trainer dashboard — empty",
+  "file": "50-trainer-dashboard-empty.png"
+ },
+ {
+  "n": 51,
+  "journey": "trainer",
+  "group": "trainer",
+  "name": "Trainer notification",
+  "file": "51-trainer-notification.png"
+ },
+ {
+  "n": 52,
+  "journey": "trainer",
+  "group": "trainer",
+  "name": "Trainer dashboard",
+  "file": "52-trainer-dashboard.png"
+ },
+ {
+  "n": 53,
+  "journey": "trainer",
+  "group": "trainer",
+  "name": "Trainer dashboard — roster",
+  "file": "53-trainer-dashboard-roster.png"
+ },
+ {
+  "n": 54,
+  "journey": "trainer",
+  "group": "trainer",
+  "name": "Trainer dashboard — earnings",
+  "file": "54-trainer-dashboard-earnings.png"
+ },
+ {
+  "n": 55,
+  "journey": "trainer",
+  "group": "trainer",
+  "name": "Connect",
+  "file": "55-connect.png"
+ },
+ {
+  "n": 56,
+  "journey": "trainer",
+  "group": "trainer",
+  "name": "Feedback",
+  "file": "56-feedback.png"
+ },
+ {
+  "n": 57,
+  "journey": "trainer",
+  "group": "trainer",
+  "name": "Feedback — sent",
+  "file": "57-feedback-sent.png"
+ },
+ {
+  "n": 58,
+  "journey": "admin",
+  "group": "admin",
+  "name": "Admin — home",
+  "file": "58-admin-home.png"
+ },
+ {
+  "n": 59,
+  "journey": "admin",
+  "group": "admin",
+  "name": "Admin — trainer verification",
+  "file": "59-admin-trainer-verification.png"
+ },
+ {
+  "n": 60,
+  "journey": "admin",
+  "group": "admin",
+  "name": "Admin — verification, empty",
+  "file": "60-admin-verification-empty.png"
+ },
+ {
+  "n": 61,
+  "journey": "admin",
+  "group": "admin",
+  "name": "Admin — disputes",
+  "file": "61-admin-disputes.png"
+ },
+ {
+  "n": 62,
+  "journey": "admin",
+  "group": "admin",
+  "name": "Admin — reviews moderation",
+  "file": "62-admin-reviews-moderation.png"
+ }
+]

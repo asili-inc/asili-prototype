@@ -1,0 +1,1009 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Asili — Clickable prototype</title>
+<style>
+  :root {
+    --primary: #1B7A4B;
+    --primary-soft: rgba(27, 122, 75, .10);
+    --bg: #F2F5F3;
+    --fg: #1A1F1C;
+    --muted: #5C6B62;
+    --border: #C8D6CE;
+    --card: #FFFFFF;
+    --font: "Funnel Sans", "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; }
+  body {
+    font-family: var(--font); color: var(--fg); background: var(--bg);
+    display: flex; flex-direction: column; overflow: hidden; font-size: 14px;
+  }
+  button { font-family: inherit; color: inherit; }
+
+  /* ---------- top bar ---------- */
+  .topbar {
+    flex: 0 0 52px; display: flex; align-items: center; gap: 16px; padding: 0 16px;
+    background: var(--card); border-bottom: 1px solid var(--border);
+  }
+  .brand { display: flex; align-items: center; gap: 10px; min-width: 250px; }
+  .brand .mark {
+    width: 28px; height: 28px; border-radius: 9px; background: var(--primary); color: #fff;
+    display: grid; place-items: center; font-weight: 800; font-size: 16px;
+  }
+  .brand b { font-weight: 800; font-size: 16px; letter-spacing: -.01em; }
+  .brand span { color: var(--muted); font-size: 13px; }
+  .seg { display: inline-flex; background: var(--bg); border: 1px solid var(--border); border-radius: 999px; padding: 3px; }
+  .seg button {
+    border: 0; background: transparent; padding: 6px 16px; border-radius: 999px; cursor: pointer;
+    font-weight: 600; font-size: 13px; color: var(--muted);
+  }
+  .seg button[aria-pressed="true"] { background: var(--primary); color: #fff; }
+  .spacer { flex: 1; }
+  .tbtn {
+    border: 1px solid var(--border); background: var(--card); border-radius: 999px; padding: 6px 14px;
+    cursor: pointer; font-weight: 600; font-size: 13px; display: inline-flex; align-items: center; gap: 6px;
+  }
+  .tbtn:hover:not(:disabled) { border-color: var(--primary); color: var(--primary); }
+  .tbtn:disabled { opacity: .4; cursor: default; }
+  .tbtn[aria-pressed="true"] { background: var(--primary-soft); border-color: var(--primary); color: var(--primary); }
+  kbd {
+    font-family: inherit; font-size: 11px; font-weight: 700; padding: 1px 6px; border-radius: 6px;
+    border: 1px solid var(--border); background: var(--bg); color: var(--muted);
+  }
+
+  /* ---------- layout ---------- */
+  .main { flex: 1; min-height: 0; display: flex; }
+  #proto { flex: 1; min-width: 0; display: flex; }
+  body.mode-board #proto { display: none; }
+  body:not(.mode-board) #board { display: none; }
+
+  /* ---------- left rail ---------- */
+  .rail {
+    flex: 0 0 290px; background: var(--card); border-right: 1px solid var(--border);
+    display: flex; flex-direction: column; min-height: 0;
+  }
+  .rail-next { padding: 12px; border-bottom: 1px solid var(--border); display: grid; gap: 8px; }
+  .rail-next .lbl { font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+  .nextchip {
+    width: 100%; text-align: left; border: 0; cursor: pointer; padding: 10px 14px; border-radius: 14px;
+    background: var(--primary); color: #fff; font-weight: 700; font-size: 13px; line-height: 1.25;
+  }
+  .nextchip small { display: block; font-weight: 500; opacity: .85; margin-top: 2px; }
+  .journeys { flex: 1; overflow-y: auto; padding: 8px 8px 24px; }
+  .journey { border-radius: 14px; margin-bottom: 4px; }
+  .jhead { display: flex; align-items: center; gap: 8px; padding: 8px 8px 8px 10px; border-radius: 14px; cursor: pointer; }
+  .jhead:hover { background: var(--bg); }
+  .journey.open > .jhead { background: var(--bg); }
+  .jtitle { flex: 1; font-weight: 700; font-size: 14px; }
+  .jtitle small { display: block; font-weight: 500; font-size: 11px; color: var(--muted); }
+  .jcaret { width: 14px; color: var(--muted); transition: transform .15s; font-size: 11px; }
+  .journey.open .jcaret { transform: rotate(90deg); }
+  .start {
+    border: 1px solid var(--primary); color: var(--primary); background: var(--card); border-radius: 999px;
+    font-weight: 700; font-size: 12px; padding: 4px 12px; cursor: pointer;
+  }
+  .start:hover { background: var(--primary); color: #fff; }
+  .jlist { display: none; list-style: none; margin: 4px 0 8px; padding: 0 0 0 6px; }
+  .journey.open .jlist { display: block; }
+  .jlist button {
+    width: 100%; text-align: left; border: 0; background: transparent; cursor: pointer; border-radius: 10px;
+    padding: 6px 10px; display: flex; gap: 10px; align-items: baseline; font-size: 13px; color: var(--fg);
+  }
+  .jlist button:hover { background: var(--bg); }
+  .jlist button .num { flex: 0 0 22px; color: var(--muted); font-size: 11px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .jlist button[aria-current="true"] { background: var(--primary-soft); color: var(--primary); font-weight: 700; }
+  .jlist button[aria-current="true"] .num { color: var(--primary); }
+
+  /* ---------- stage + phone ---------- */
+  .stage { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 16px; gap: 10px; position: relative; }
+  .phone-box { position: relative; flex: 0 0 auto; }
+  .phone {
+    position: absolute; left: 0; top: 0; transform-origin: 0 0; width: 410px; height: 864px; padding: 10px;
+    border-radius: 44px; background: #1A1F1C;
+    box-shadow: 0 30px 60px -20px rgba(26, 31, 28, .45), 0 0 0 1px rgba(0,0,0,.4) inset;
+  }
+  .screen { position: relative; width: 390px; height: 844px; border-radius: 34px; overflow: hidden; background: #fff; isolation: isolate; }
+  .layer { position: absolute; inset: 0; opacity: 1; transition: opacity .16s ease; background: #fff; }
+  .layer.entering { opacity: 0; }
+  .scroller { position: absolute; inset: 0; overflow-y: auto; overflow-x: hidden; scrollbar-width: none; overscroll-behavior: contain; }
+  .scroller::-webkit-scrollbar { display: none; }
+  .canvas { position: relative; width: 390px; }
+  .canvas img { display: block; width: 390px; height: 100%; user-select: none; -webkit-user-drag: none;
+    image-rendering: auto; image-rendering: -webkit-optimize-contrast; }
+  .dock { position: absolute; left: 0; width: 390px; background-repeat: no-repeat; background-size: 390px auto; }
+  .dock.top { top: 0; }
+  .dock.bottom { bottom: 0; }
+
+  .hs {
+    position: absolute; padding: 0; margin: 0; border: 0; background: transparent; cursor: pointer;
+    border-radius: 12px; -webkit-tap-highlight-color: transparent;
+  }
+  .hs:focus-visible { outline: 2px solid var(--primary); outline-offset: -2px; }
+  .hs:active { background: rgba(27, 122, 75, .14); }
+  .hs .t { display: none; }
+  body.hs-on .hs {
+    background: rgba(27, 122, 75, .20); outline: 1.5px solid rgba(27, 122, 75, .85); outline-offset: -1.5px;
+  }
+  body.hs-on .hs:hover { background: rgba(27, 122, 75, .34); }
+  body.hs-on .hs .t {
+    display: block; position: absolute; left: 2px; top: 1px; max-width: calc(100% - 4px); overflow: hidden;
+    white-space: nowrap; text-overflow: ellipsis; font: 700 9px/1.2 var(--font); color: #0E4E2E;
+    background: rgba(255, 255, 255, .8); padding: 1px 4px; border-radius: 4px; pointer-events: none;
+  }
+  .caption { font-size: 12px; color: var(--muted); display: flex; gap: 12px; align-items: center; min-height: 20px; }
+  .caption b { color: var(--fg); }
+  .caption .scrolls { color: var(--primary); font-weight: 700; }
+
+  /* ---------- flow board ---------- */
+  #board { flex: 1; overflow-y: auto; padding: 24px 28px 64px; }
+  .bj { margin-bottom: 36px; }
+  .bj h2 { margin: 0 0 4px; font-size: 20px; letter-spacing: -.01em; display: flex; align-items: baseline; gap: 10px; }
+  .bj h2 small { font-size: 12px; font-weight: 600; color: var(--muted); }
+  .brow { display: flex; gap: 20px; overflow-x: auto; padding: 12px 4px 16px; scrollbar-width: thin; }
+  .bcard { flex: 0 0 195px; display: flex; flex-direction: column; gap: 8px; }
+  .bthumb {
+    position: relative; width: 195px; height: 422px; overflow: hidden; border-radius: 22px;
+    border: 1px solid var(--border); background: #fff; cursor: pointer; padding: 0; display: block;
+    box-shadow: 0 6px 16px -10px rgba(26, 31, 28, .35);
+  }
+  .bthumb:hover { border-color: var(--primary); box-shadow: 0 0 0 2px var(--primary); }
+  .bthumb img { display: block; width: 195px; height: auto; }
+  .bcard.current .bthumb { box-shadow: 0 0 0 3px var(--primary); border-color: var(--primary); }
+  .bthumb .tallbadge {
+    position: absolute; right: 8px; bottom: 8px; font-size: 10px; font-weight: 700; color: #fff;
+    background: rgba(26, 31, 28, .75); border-radius: 999px; padding: 2px 8px;
+  }
+  .bname { font-size: 13px; font-weight: 700; line-height: 1.25; display: flex; gap: 8px; align-items: baseline; }
+  .bname .num { flex: 0 0 auto; font-size: 11px; color: #fff; background: var(--primary); border-radius: 999px; padding: 1px 7px; font-variant-numeric: tabular-nums; }
+  .chips { display: flex; flex-wrap: wrap; gap: 4px; }
+  .chip {
+    border: 1px solid var(--border); background: var(--card); border-radius: 999px; padding: 3px 9px; cursor: pointer;
+    font-size: 11px; font-weight: 600; color: var(--primary); text-align: left; line-height: 1.3;
+  }
+  .chip:hover { background: var(--primary); border-color: var(--primary); color: #fff; }
+  .chip.more { color: var(--muted); cursor: default; border-style: dashed; }
+  .chip.more:hover { background: var(--card); color: var(--muted); border-color: var(--border); }
+  .chip.end { color: var(--muted); cursor: default; border-style: dashed; }
+  .chip.end:hover { background: var(--card); color: var(--muted); border-color: var(--border); }
+
+  .toast {
+    position: fixed; bottom: 18px; left: 50%; transform: translateX(-50%); background: var(--fg); color: #fff;
+    padding: 8px 16px; border-radius: 999px; font-size: 13px; opacity: 0; pointer-events: none; transition: opacity .2s; z-index: 10;
+  }
+  .toast.show { opacity: 1; }
+  @media (max-width: 900px) { .rail { display: none; } .brand span { display: none; } .brand { min-width: 0; } .keys { display: none; } }
+  @media (prefers-reduced-motion: reduce) { .layer { transition: none; } }
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="brand"><div class="mark">A</div><b>Asili</b><span>Clickable prototype</span></div>
+  <div class="seg" role="group" aria-label="Mode">
+    <button id="m-proto" aria-pressed="true">Prototype</button>
+    <button id="m-board" aria-pressed="false">Flow board <kbd>B</kbd></button>
+  </div>
+  <div class="spacer"></div>
+  <span class="keys" style="color:var(--muted);font-size:12px"><kbd>←</kbd> <kbd>→</kbd> screens &nbsp; <kbd>Esc</kbd> back</span>
+  <button class="tbtn" id="btn-back" title="Back (Esc / Backspace)" disabled>← Back</button>
+  <button class="tbtn" id="btn-hs" aria-pressed="false" title="Show tappable areas (H)">Hotspots <kbd>H</kbd></button>
+</header>
+
+<div class="main">
+  <section id="proto">
+    <aside class="rail">
+      <div class="rail-next">
+        <div class="lbl">Next in journey</div>
+        <button class="nextchip" id="nextchip">…</button>
+      </div>
+      <div class="journeys" id="journeys"></div>
+    </aside>
+    <div class="stage" id="stage">
+      <div class="phone-box" id="phonebox">
+        <div class="phone" id="phone"><div class="screen" id="screen"></div></div>
+      </div>
+      <div class="caption" id="caption"></div>
+    </div>
+  </section>
+  <section id="board" aria-label="Flow board"></section>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* =====================================================================
+   HOTSPOTS — edit here.
+   Key = screen file (see SCREENS below). Coordinates are in 390x844
+   design px (screen-file px / 2). For tall screens (TALL) y runs down the
+   full image height and scrolls with it; hotspots inside a docked strip
+   (top bar / bottom CTA + tab bar) stay pinned. `to` is a screen file, or
+   "@back" for "go to the previous screen in history".
+   ===================================================================== */
+const FLOW = {
+  // 01 Home — guest
+  "01-home-guest.png": [
+    {x:20,y:280,w:350,h:48,to:"14-search.png",label:"Search by skill"},
+    {x:20,y:348,w:350,h:52,to:"05-onboarding-child-name.png",label:"Get started"},
+    {x:250,y:404,w:80,h:44,to:"02-login.png",label:"Sign in"},
+    {x:20,y:502,w:89,h:44,to:"14-search.png",label:"Striking"},
+    {x:117,y:502,w:124,h:44,to:"14-search.png",label:"Goalkeeping"},
+    {x:249,y:502,w:80,h:44,to:"14-search.png",label:"Agility"},
+    {x:40,y:640,w:310,h:44,to:"40-join-trainer-signup.png",label:"Create your profile"},
+    {x:78,y:762,w:78,h:82,to:"25-sessions.png",label:"Tab · Sessions"},
+    {x:156,y:762,w:78,h:82,to:"33-portal.png",label:"Tab · Portal"},
+    {x:234,y:762,w:78,h:82,to:"34-events.png",label:"Tab · Events"},
+    {x:312,y:762,w:78,h:82,to:"32-learn.png",label:"Tab · Learn"},
+  ],
+  // 02 Login
+  "02-login.png": [
+    {x:8,y:62,w:92,h:44,to:"01-home-guest.png",label:"Back"},
+    {x:20,y:318,w:350,h:52,to:"13-home-returning.png",label:"Continue with Google"},
+    {x:20,y:382,w:350,h:52,to:"13-home-returning.png",label:"Continue with Apple"},
+    {x:20,y:588,w:350,h:52,to:"04-login-check-your-email.png",label:"Email me a sign-in link"},
+    {x:0,y:762,w:78,h:82,to:"01-home-guest.png",label:"Tab · Explore"},
+    {x:78,y:762,w:78,h:82,to:"25-sessions.png",label:"Tab · Sessions"},
+    {x:156,y:762,w:78,h:82,to:"33-portal.png",label:"Tab · Portal"},
+    {x:234,y:762,w:78,h:82,to:"34-events.png",label:"Tab · Events"},
+    {x:312,y:762,w:78,h:82,to:"32-learn.png",label:"Tab · Learn"},
+  ],
+  // 03 Login gate
+  "03-login-gate.png": [
+    {x:8,y:62,w:92,h:44,to:"17-trainer-profile.png",label:"Back"},
+    {x:20,y:360,w:350,h:52,to:"18-trainer-profile-plus-booking-sheet.png",label:"Continue with Google"},
+    {x:20,y:424,w:350,h:52,to:"18-trainer-profile-plus-booking-sheet.png",label:"Continue with Apple"},
+    {x:20,y:618,w:350,h:52,to:"04-login-check-your-email.png",label:"Email me a sign-in link"},
+    {x:0,y:762,w:78,h:82,to:"01-home-guest.png",label:"Tab · Explore"},
+    {x:78,y:762,w:78,h:82,to:"25-sessions.png",label:"Tab · Sessions"},
+    {x:156,y:762,w:78,h:82,to:"33-portal.png",label:"Tab · Portal"},
+    {x:234,y:762,w:78,h:82,to:"34-events.png",label:"Tab · Events"},
+    {x:312,y:762,w:78,h:82,to:"32-learn.png",label:"Tab · Learn"},
+  ],
+  // 04 Login — check your email
+  "04-login-check-your-email.png": [
+    {x:8,y:62,w:92,h:44,to:"02-login.png",label:"Back"},
+    {x:100,y:538,w:190,h:44,to:"02-login.png",label:"Use a different email"},
+    {x:90,y:489,w:210,h:44,to:"13-home-returning.png",label:"Simulate opening the link"},
+    {x:0,y:762,w:78,h:82,to:"01-home-guest.png",label:"Tab · Explore"},
+    {x:78,y:762,w:78,h:82,to:"25-sessions.png",label:"Tab · Sessions"},
+    {x:156,y:762,w:78,h:82,to:"33-portal.png",label:"Tab · Portal"},
+    {x:234,y:762,w:78,h:82,to:"34-events.png",label:"Tab · Events"},
+    {x:312,y:762,w:78,h:82,to:"32-learn.png",label:"Tab · Learn"},
+  ],
+  // 05 Onboarding — child name
+  "05-onboarding-child-name.png": [
+    {x:24,y:754,w:342,h:56,to:"06-onboarding-birth-year.png",label:"Continue"},
+  ],
+  // 06 Onboarding — birth year
+  "06-onboarding-birth-year.png": [
+    {x:8,y:62,w:92,h:44,to:"05-onboarding-child-name.png",label:"Back"},
+    {x:24,y:754,w:342,h:56,to:"07-onboarding-soccer-background.png",label:"Continue"},
+  ],
+  // 07 Onboarding — soccer background
+  "07-onboarding-soccer-background.png": [
+    {x:8,y:62,w:92,h:44,to:"06-onboarding-birth-year.png",label:"Back"},
+    {x:24,y:754,w:342,h:56,to:"08-onboarding-training-frequency.png",label:"Continue"},
+  ],
+  // 08 Onboarding — training frequency
+  "08-onboarding-training-frequency.png": [
+    {x:8,y:62,w:92,h:44,to:"07-onboarding-soccer-background.png",label:"Back"},
+    {x:24,y:754,w:342,h:56,to:"09-onboarding-goals.png",label:"Continue"},
+    {x:95,y:522,w:200,h:44,to:"09-onboarding-goals.png",label:"Still figuring this out"},
+  ],
+  // 09 Onboarding — goals
+  "09-onboarding-goals.png": [
+    {x:8,y:62,w:92,h:44,to:"08-onboarding-training-frequency.png",label:"Back"},
+    {x:24,y:754,w:342,h:56,to:"10-onboarding-experience.png",label:"Continue"},
+    {x:95,y:612,w:200,h:44,to:"10-onboarding-experience.png",label:"Not sure yet"},
+  ],
+  // 10 Onboarding — experience
+  "10-onboarding-experience.png": [
+    {x:8,y:62,w:92,h:44,to:"09-onboarding-goals.png",label:"Back"},
+    {x:24,y:754,w:342,h:56,to:"11-onboarding-ambitions.png",label:"Continue"},
+    {x:95,y:556,w:200,h:44,to:"11-onboarding-ambitions.png",label:"Not sure"},
+  ],
+  // 11 Onboarding — ambitions
+  "11-onboarding-ambitions.png": [
+    {x:8,y:62,w:92,h:44,to:"10-onboarding-experience.png",label:"Back"},
+    {x:24,y:754,w:342,h:56,to:"12-onboarding-profile-ready.png",label:"Continue"},
+    {x:85,y:612,w:220,h:44,to:"12-onboarding-profile-ready.png",label:"No preference yet"},
+  ],
+  // 12 Onboarding — profile ready
+  "12-onboarding-profile-ready.png": [
+    {x:28,y:738,w:334,h:56,to:"14-search.png",label:"See My Trainer Matches"},
+  ],
+  // 13 Home — returning
+  "13-home-returning.png": [
+    {x:296,y:62,w:44,h:44,to:"37-account.png",label:"Account"},
+    {x:20,y:228,w:350,h:48,to:"14-search.png",label:"Search trainers or skills"},
+    {x:20,y:502,w:230,h:44,to:"32-learn.png",label:"Read Alex's stage guide"},
+    {x:300,y:558,w:80,h:44,to:"14-search.png",label:"See all"},
+    {x:20,y:610,w:350,h:145,to:"17-trainer-profile.png",label:"Carlos Mendes"},
+    {x:78,y:762,w:78,h:82,to:"25-sessions.png",label:"Tab · Sessions"},
+    {x:156,y:762,w:78,h:82,to:"33-portal.png",label:"Tab · Portal"},
+    {x:234,y:762,w:78,h:82,to:"34-events.png",label:"Tab · Events"},
+    {x:312,y:762,w:78,h:82,to:"32-learn.png",label:"Tab · Learn"},
+  ],
+  // 14 Search
+  "14-search.png": [
+    {x:8,y:62,w:92,h:44,to:"13-home-returning.png",label:"Back"},
+    {x:76,y:182,w:88,h:44,to:"15-search-empty.png",label:"Striking"},
+    {x:171,y:182,w:120,h:44,to:"15-search-empty.png",label:"Goalkeeping"},
+    {x:298,y:182,w:76,h:44,to:"15-search-empty.png",label:"Agility"},
+    {x:16,y:320,w:358,h:300,to:"17-trainer-profile.png",label:"Carlos Mendes"},
+    {x:16,y:636,w:358,h:126,to:"17-trainer-profile.png",label:"Trainer card"},
+    {x:78,y:762,w:78,h:82,to:"25-sessions.png",label:"Tab · Sessions"},
+    {x:156,y:762,w:78,h:82,to:"33-portal.png",label:"Tab · Portal"},
+    {x:234,y:762,w:78,h:82,to:"34-events.png",label:"Tab · Events"},
+    {x:312,y:762,w:78,h:82,to:"32-learn.png",label:"Tab · Learn"},
+  ],
+  // 15 Search — empty
+  "15-search-empty.png": [
+    {x:8,y:62,w:92,h:44,to:"14-search.png",label:"Back"},
+    {x:45,y:557,w:300,h:56,to:"14-search.png",label:"Clear search"},
+    {x:50,y:660,w:86,h:44,to:"14-search.png",label:"Striking"},
+    {x:145,y:660,w:78,h:44,to:"14-search.png",label:"Agility"},
+    {x:231,y:660,w:110,h:44,to:"14-search.png",label:"First Touch"},
+    {x:78,y:762,w:78,h:82,to:"25-sessions.png",label:"Tab · Sessions"},
+    {x:156,y:762,w:78,h:82,to:"33-portal.png",label:"Tab · Portal"},
+    {x:234,y:762,w:78,h:82,to:"34-events.png",label:"Tab · Events"},
+    {x:312,y:762,w:78,h:82,to:"32-learn.png",label:"Tab · Learn"},
+  ],
+  // 16 Search — loading
+  "16-search-loading.png": [
+    {x:8,y:62,w:92,h:44,to:"13-home-returning.png",label:"Back"},
+    {x:78,y:762,w:78,h:82,to:"25-sessions.png",label:"Tab · Sessions"},
+    {x:156,y:762,w:78,h:82,to:"33-portal.png",label:"Tab · Portal"},
+    {x:234,y:762,w:78,h:82,to:"34-events.png",label:"Tab · Events"},
+    {x:312,y:762,w:78,h:82,to:"32-learn.png",label:"Tab · Learn"},
+  ],
+  // 17 Trainer profile
+  "17-trainer-profile.png": [
+    {x:8,y:62,w:92,h:44,to:"14-search.png",label:"Back"},
+    {x:20,y:1708,w:350,h:56,to:"18-trainer-profile-plus-booking-sheet.png",label:"Book a session"},
+    {x:78,y:1777,w:78,h:82,to:"25-sessions.png",label:"Tab · Sessions"},
+    {x:156,y:1777,w:78,h:82,to:"33-portal.png",label:"Tab · Portal"},
+    {x:234,y:1777,w:78,h:82,to:"34-events.png",label:"Tab · Events"},
+    {x:312,y:1777,w:78,h:82,to:"32-learn.png",label:"Tab · Learn"},
+  ],
+  // 18 Trainer profile + booking sheet
+  "18-trainer-profile-plus-booking-sheet.png": [
+    {x:8,y:62,w:92,h:44,to:"17-trainer-profile.png",label:"Back"},
+    {x:0,y:106,w:390,h:184,to:"17-trainer-profile.png",label:"Close sheet"},
+    {x:24,y:426,w:342,h:48,to:"19-booking-sheet-fully-booked.png",label:"Date (demo: fully booked day)"},
+    {x:24,y:728,w:342,h:56,to:"22-checkout.png",label:"Confirm Booking Request"},
+  ],
+  // 19 Booking sheet — fully booked
+  "19-booking-sheet-fully-booked.png": [
+    {x:8,y:62,w:92,h:44,to:"17-trainer-profile.png",label:"Back"},
+    {x:0,y:106,w:390,h:144,to:"17-trainer-profile.png",label:"Close sheet"},
+    {x:24,y:386,w:342,h:48,to:"18-trainer-profile-plus-booking-sheet.png",label:"Pick another date"},
+    {x:40,y:548,w:310,h:48,to:"18-trainer-profile-plus-booking-sheet.png",label:"See times"},
+  ],
+  // 20 Booking sheet — no hours (none_declared)
+  "20-booking-sheet-no-hours-none-declared.png": [
+    {x:8,y:62,w:92,h:44,to:"17-trainer-profile.png",label:"Back"},
+    {x:0,y:106,w:390,h:204,to:"17-trainer-profile.png",label:"Close sheet"},
+    {x:24,y:446,w:342,h:48,to:"18-trainer-profile-plus-booking-sheet.png",label:"Pick another date"},
+  ],
+  // 21 Booking sheet — fully requested (at_capacity)
+  "21-booking-sheet-fully-requested-at-capacity.png": [
+    {x:8,y:62,w:92,h:44,to:"17-trainer-profile.png",label:"Back"},
+    {x:0,y:106,w:390,h:184,to:"17-trainer-profile.png",label:"Close sheet"},
+    {x:24,y:426,w:342,h:48,to:"18-trainer-profile-plus-booking-sheet.png",label:"Pick another date"},
+  ],
+  // 22 Checkout
+  "22-checkout.png": [
+    {x:8,y:62,w:92,h:44,to:"17-trainer-profile.png",label:"Back"},
+    {x:20,y:730,w:350,h:56,to:"24-booking-requested.png",label:"Pay now · $85.00"},
+  ],
+  // 23 Checkout — hold expired
+  "23-checkout-hold-expired.png": [
+    {x:8,y:62,w:92,h:44,to:"17-trainer-profile.png",label:"Back"},
+    {x:28,y:559,w:334,h:56,to:"17-trainer-profile.png",label:"Find another time"},
+    {x:100,y:624,w:190,h:44,to:"14-search.png",label:"Browse all trainers"},
+  ],
+  // 24 Booking requested
+  "24-booking-requested.png": [
+    {x:28,y:638,w:334,h:56,to:"25-sessions.png",label:"View in My Sessions"},
+    {x:150,y:704,w:90,h:44,to:"13-home-returning.png",label:"Done"},
+  ],
+  // 25 Sessions
+  "25-sessions.png": [
+    {x:8,y:62,w:92,h:44,to:"13-home-returning.png",label:"Back"},
+    {x:17,y:213,w:356,h:78,to:"28-messages.png",label:"Sarah Jenkins"},
+    {x:240,y:293,w:117,h:44,to:"28-messages.png",label:"Message"},
+    {x:33,y:293,w:198,h:44,to:"17-trainer-profile.png",label:"View trainer"},
+    {x:17,y:367,w:356,h:78,to:"28-messages.png",label:"Carlos Mendes"},
+    {x:240,y:447,w:117,h:44,to:"28-messages.png",label:"Message"},
+    {x:33,y:447,w:198,h:44,to:"17-trainer-profile.png",label:"View trainer"},
+    {x:0,y:762,w:78,h:82,to:"13-home-returning.png",label:"Tab · Explore"},
+    {x:156,y:762,w:78,h:82,to:"33-portal.png",label:"Tab · Portal"},
+    {x:234,y:762,w:78,h:82,to:"34-events.png",label:"Tab · Events"},
+    {x:312,y:762,w:78,h:82,to:"32-learn.png",label:"Tab · Learn"},
+  ],
+  // 26 Sessions — empty
+  "26-sessions-empty.png": [
+    {x:8,y:62,w:92,h:44,to:"13-home-returning.png",label:"Back"},
+    {x:40,y:466,w:310,h:56,to:"14-search.png",label:"Find a trainer"},
+    {x:0,y:762,w:78,h:82,to:"13-home-returning.png",label:"Tab · Explore"},
+    {x:156,y:762,w:78,h:82,to:"33-portal.png",label:"Tab · Portal"},
+    {x:234,y:762,w:78,h:82,to:"34-events.png",label:"Tab · Events"},
+    {x:312,y:762,w:78,h:82,to:"32-learn.png",label:"Tab · Learn"},
+  ],
+  // 27 Sessions — completed & cancelled
+  "27-sessions-completed-and-cancelled.png": [
+    {x:8,y:62,w:92,h:44,to:"13-home-returning.png",label:"Back"},
+    {x:33,y:301,w:207,h:44,to:"30-review.png",label:"Leave a review"},
+    {x:248,y:301,w:109,h:44,to:"17-trainer-profile.png",label:"Book again"},
+    {x:248,y:455,w:109,h:44,to:"17-trainer-profile.png",label:"Book again"},
+    {x:33,y:611,w:324,h:44,to:"17-trainer-profile.png",label:"View trainer"},
+    {x:0,y:762,w:78,h:82,to:"13-home-returning.png",label:"Tab · Explore"},
+    {x:156,y:762,w:78,h:82,to:"33-portal.png",label:"Tab · Portal"},
+    {x:234,y:762,w:78,h:82,to:"34-events.png",label:"Tab · Events"},
+    {x:312,y:762,w:78,h:82,to:"32-learn.png",label:"Tab · Learn"},
+  ],
+  // 28 Messages
+  "28-messages.png": [
+    {x:0,y:68,w:64,h:54,to:"25-sessions.png",label:"Back"},
+  ],
+  // 29 Messages — empty thread
+  "29-messages-empty-thread.png": [
+    {x:0,y:68,w:64,h:54,to:"25-sessions.png",label:"Back"},
+  ],
+  // 30 Review
+  "30-review.png": [
+    {x:8,y:62,w:92,h:44,to:"27-sessions-completed-and-cancelled.png",label:"Back"},
+    {x:20,y:754,w:350,h:56,to:"31-review-thanks.png",label:"Submit review"},
+  ],
+  // 31 Review — thanks
+  "31-review-thanks.png": [
+    {x:28,y:650,w:334,h:56,to:"25-sessions.png",label:"Back to Sessions"},
+  ],
+  // 32 Learn
+  "32-learn.png": [
+    {x:0,y:762,w:78,h:82,to:"13-home-returning.png",label:"Tab · Explore"},
+    {x:78,y:762,w:78,h:82,to:"25-sessions.png",label:"Tab · Sessions"},
+    {x:156,y:762,w:78,h:82,to:"33-portal.png",label:"Tab · Portal"},
+    {x:234,y:762,w:78,h:82,to:"34-events.png",label:"Tab · Events"},
+  ],
+  // 33 Portal
+  "33-portal.png": [
+    {x:20,y:475,w:169,h:120,to:"34-events.png",label:"Live Q&A Sessions"},
+    {x:201,y:475,w:169,h:120,to:"32-learn.png",label:"Resource Library"},
+    {x:310,y:600,w:70,h:46,to:"32-learn.png",label:"See all"},
+    {x:30,y:403,w:180,h:44,to:"32-learn.png",label:"What to focus on"},
+    {x:0,y:762,w:78,h:82,to:"13-home-returning.png",label:"Tab · Explore"},
+    {x:78,y:762,w:78,h:82,to:"25-sessions.png",label:"Tab · Sessions"},
+    {x:234,y:762,w:78,h:82,to:"34-events.png",label:"Tab · Events"},
+    {x:312,y:762,w:78,h:82,to:"32-learn.png",label:"Tab · Learn"},
+  ],
+  // 34 Events
+  "34-events.png": [
+    {x:0,y:762,w:78,h:82,to:"13-home-returning.png",label:"Tab · Explore"},
+    {x:78,y:762,w:78,h:82,to:"25-sessions.png",label:"Tab · Sessions"},
+    {x:156,y:762,w:78,h:82,to:"33-portal.png",label:"Tab · Portal"},
+    {x:312,y:762,w:78,h:82,to:"32-learn.png",label:"Tab · Learn"},
+  ],
+  // 35 Store
+  "35-store.png": [
+    {x:41,y:339,w:308,h:48,to:"36-store-success.png",label:"Book now"},
+    {x:41,y:529,w:308,h:48,to:"36-store-success.png",label:"Book now"},
+    {x:41,y:719,w:308,h:48,to:"36-store-success.png",label:"Book now"},
+  ],
+  // 36 Store — success
+  "36-store-success.png": [
+    {x:28,y:567,w:334,h:56,to:"35-store.png",label:"Back to the store"},
+  ],
+  // 37 Account
+  "37-account.png": [
+    {x:8,y:62,w:92,h:44,to:"13-home-returning.png",label:"Back"},
+  ],
+  // 38 Invite
+  "38-invite.png": [
+    {x:8,y:62,w:92,h:44,to:"01-home-guest.png",label:"Back"},
+    {x:20,y:710,w:350,h:52,to:"05-onboarding-child-name.png",label:"Continue"},
+    {x:110,y:766,w:170,h:44,to:"01-home-guest.png",label:"Not interested"},
+  ],
+  // 39 Invite — unavailable
+  "39-invite-unavailable.png": [
+    {x:8,y:62,w:92,h:44,to:"01-home-guest.png",label:"Back"},
+    {x:20,y:758,w:350,h:52,to:"01-home-guest.png",label:"Browse trainers"},
+  ],
+  // 40 Join — trainer signup
+  "40-join-trainer-signup.png": [
+    {x:8,y:62,w:92,h:44,to:"01-home-guest.png",label:"Back"},
+    {x:20,y:430,w:350,h:52,to:"41-trainer-onboarding-profile-basics.png",label:"Continue with Google"},
+    {x:20,y:494,w:350,h:52,to:"41-trainer-onboarding-profile-basics.png",label:"Continue with Apple"},
+    {x:20,y:692,w:350,h:52,to:"41-trainer-onboarding-profile-basics.png",label:"Email me a sign-up link"},
+    {x:240,y:752,w:90,h:44,to:"02-login.png",label:"Log in"},
+  ],
+  // 41 Trainer onboarding — profile basics
+  "41-trainer-onboarding-profile-basics.png": [
+    {x:24,y:754,w:342,h:56,to:"42-trainer-onboarding-photo-and-philosophy.png",label:"Continue"},
+  ],
+  // 42 Trainer onboarding — photo & philosophy
+  "42-trainer-onboarding-photo-and-philosophy.png": [
+    {x:8,y:62,w:92,h:44,to:"41-trainer-onboarding-profile-basics.png",label:"Back"},
+    {x:24,y:754,w:342,h:56,to:"43-trainer-onboarding-rate-experience-and-location.png",label:"Continue"},
+  ],
+  // 43 Trainer onboarding — rate, experience & location
+  "43-trainer-onboarding-rate-experience-and-location.png": [
+    {x:8,y:62,w:92,h:44,to:"42-trainer-onboarding-photo-and-philosophy.png",label:"Back"},
+    {x:24,y:754,w:342,h:56,to:"44-trainer-onboarding-specializations.png",label:"Continue"},
+  ],
+  // 44 Trainer onboarding — specializations
+  "44-trainer-onboarding-specializations.png": [
+    {x:8,y:62,w:92,h:44,to:"43-trainer-onboarding-rate-experience-and-location.png",label:"Back"},
+    {x:24,y:754,w:342,h:56,to:"45-trainer-onboarding-age-groups-and-certifications.png",label:"Continue"},
+  ],
+  // 45 Trainer onboarding — age groups & certifications
+  "45-trainer-onboarding-age-groups-and-certifications.png": [
+    {x:8,y:62,w:92,h:44,to:"44-trainer-onboarding-specializations.png",label:"Back"},
+    {x:24,y:754,w:342,h:56,to:"46-trainer-onboarding-availability.png",label:"Continue"},
+  ],
+  // 46 Trainer onboarding — availability
+  "46-trainer-onboarding-availability.png": [
+    {x:8,y:62,w:92,h:44,to:"45-trainer-onboarding-age-groups-and-certifications.png",label:"Back"},
+    {x:24,y:754,w:342,h:56,to:"47-trainer-onboarding-background-check.png",label:"Continue"},
+  ],
+  // 47 Trainer onboarding — background check
+  "47-trainer-onboarding-background-check.png": [
+    {x:8,y:62,w:92,h:44,to:"46-trainer-onboarding-availability.png",label:"Back"},
+    {x:24,y:754,w:342,h:56,to:"48-trainer-onboarding-profile-preview.png",label:"Continue"},
+  ],
+  // 48 Trainer onboarding — profile preview
+  "48-trainer-onboarding-profile-preview.png": [
+    {x:8,y:62,w:92,h:44,to:"47-trainer-onboarding-background-check.png",label:"Back"},
+    {x:24,y:754,w:342,h:56,to:"49-trainer-onboarding-profile-submitted.png",label:"Submit profile"},
+  ],
+  // 49 Trainer onboarding — profile submitted
+  "49-trainer-onboarding-profile-submitted.png": [
+    {x:28,y:715,w:334,h:56,to:"13-home-returning.png",label:"Go to Home"},
+  ],
+  // 50 Trainer dashboard — empty
+  "50-trainer-dashboard-empty.png": [
+    {x:8,y:62,w:92,h:44,to:"@back",label:"Back"},
+    {x:20,y:306,w:80,h:44,to:"52-trainer-dashboard.png",label:"Upcoming"},
+    {x:110,y:306,w:64,h:44,to:"53-trainer-dashboard-roster.png",label:"Roster"},
+    {x:176,y:306,w:80,h:44,to:"54-trainer-dashboard-earnings.png",label:"Earnings"},
+  ],
+  // 51 Trainer notification
+  "51-trainer-notification.png": [
+    {x:12,y:265,w:366,h:146,to:"52-trainer-dashboard.png",label:"New booking request"},
+  ],
+  // 52 Trainer dashboard
+  "52-trainer-dashboard.png": [
+    {x:8,y:62,w:92,h:44,to:"@back",label:"Back"},
+    {x:314,y:525,w:44,h:44,to:"28-messages.png",label:"Message"},
+    {x:17,y:785,w:356,h:59,to:"56-feedback.png",label:"Maya · completed session"},
+    {x:110,y:306,w:64,h:44,to:"53-trainer-dashboard-roster.png",label:"Roster"},
+    {x:176,y:306,w:80,h:44,to:"54-trainer-dashboard-earnings.png",label:"Earnings"},
+  ],
+  // 53 Trainer dashboard — roster
+  "53-trainer-dashboard-roster.png": [
+    {x:8,y:62,w:92,h:44,to:"@back",label:"Back"},
+    {x:20,y:306,w:80,h:44,to:"52-trainer-dashboard.png",label:"Upcoming"},
+    {x:176,y:306,w:80,h:44,to:"54-trainer-dashboard-earnings.png",label:"Earnings"},
+  ],
+  // 54 Trainer dashboard — earnings
+  "54-trainer-dashboard-earnings.png": [
+    {x:8,y:62,w:92,h:44,to:"@back",label:"Back"},
+    {x:20,y:306,w:80,h:44,to:"52-trainer-dashboard.png",label:"Upcoming"},
+    {x:110,y:306,w:64,h:44,to:"53-trainer-dashboard-roster.png",label:"Roster"},
+  ],
+  // 55 Connect
+  "55-connect.png": [
+    {x:8,y:62,w:92,h:44,to:"52-trainer-dashboard.png",label:"Back"},
+  ],
+  // 56 Feedback
+  "56-feedback.png": [
+    {x:8,y:62,w:92,h:44,to:"52-trainer-dashboard.png",label:"Back"},
+    {x:20,y:754,w:350,h:56,to:"57-feedback-sent.png",label:"Send feedback to parent"},
+  ],
+  // 57 Feedback — sent
+  "57-feedback-sent.png": [
+    {x:28,y:631,w:334,h:56,to:"52-trainer-dashboard.png",label:"Back to Dashboard"},
+  ],
+  // 58 Admin — home
+  "58-admin-home.png": [
+    {x:8,y:62,w:92,h:44,to:"13-home-returning.png",label:"Back"},
+    {x:125,y:158,w:111,h:44,to:"59-admin-trainer-verification.png",label:"Verification"},
+    {x:244,y:158,w:89,h:44,to:"62-admin-reviews-moderation.png",label:"Reviews"},
+    {x:341,y:158,w:49,h:44,to:"61-admin-disputes.png",label:"Disputes"},
+    {x:17,y:233,w:356,h:72,to:"59-admin-trainer-verification.png",label:"Trainers awaiting verification"},
+    {x:17,y:317,w:356,h:72,to:"62-admin-reviews-moderation.png",label:"Reviews awaiting moderation"},
+    {x:17,y:401,w:356,h:72,to:"61-admin-disputes.png",label:"Open disputes"},
+  ],
+  // 59 Admin — trainer verification
+  "59-admin-trainer-verification.png": [
+    {x:8,y:62,w:92,h:44,to:"@back",label:"Back"},
+    {x:20,y:158,w:97,h:44,to:"58-admin-home.png",label:"Overview"},
+    {x:244,y:158,w:89,h:44,to:"62-admin-reviews-moderation.png",label:"Reviews"},
+    {x:341,y:158,w:49,h:44,to:"61-admin-disputes.png",label:"Disputes"},
+    {x:118,y:780,w:104,h:44,to:"60-admin-verification-empty.png",label:"Approve (Tomás Ferreira, Clear)"},
+  ],
+  // 60 Admin — verification, empty
+  "60-admin-verification-empty.png": [
+    {x:8,y:62,w:92,h:44,to:"@back",label:"Back"},
+    {x:20,y:158,w:97,h:44,to:"58-admin-home.png",label:"Overview"},
+    {x:125,y:158,w:111,h:44,to:"59-admin-trainer-verification.png",label:"Verification"},
+    {x:244,y:158,w:89,h:44,to:"62-admin-reviews-moderation.png",label:"Reviews"},
+    {x:341,y:158,w:49,h:44,to:"61-admin-disputes.png",label:"Disputes"},
+  ],
+  // 61 Admin — disputes
+  "61-admin-disputes.png": [
+    {x:8,y:62,w:92,h:44,to:"@back",label:"Back"},
+    {x:20,y:158,w:56,h:44,to:"59-admin-trainer-verification.png",label:"Verification"},
+    {x:84,y:158,w:89,h:44,to:"62-admin-reviews-moderation.png",label:"Reviews"},
+  ],
+  // 62 Admin — reviews moderation
+  "62-admin-reviews-moderation.png": [
+    {x:8,y:62,w:92,h:44,to:"@back",label:"Back"},
+    {x:20,y:158,w:97,h:44,to:"58-admin-home.png",label:"Overview"},
+    {x:125,y:158,w:111,h:44,to:"59-admin-trainer-verification.png",label:"Verification"},
+    {x:341,y:158,w:49,h:44,to:"61-admin-disputes.png",label:"Disputes"},
+  ],
+};
+
+/* Screens that are taller than the 844px phone viewport: they scroll inside the frame.
+   dockTop / dockBottom = height of the fixed TopBar / CTA + TabBar strips that stay pinned. */
+const TALL = {
+  "17-trainer-profile.png":            { h: 1859, dockTop: 106, dockBottom: 170 },
+  "55-connect.png":                    { h: 1147, dockTop: 106, dockBottom: 0 },
+  "59-admin-trainer-verification.png": { h: 1245, dockTop: 106, dockBottom: 0 }
+};
+
+/* "Next in journey" override (screen file -> file). Defaults to the next screen in manifest order. */
+const NEXT = {
+  "01-home-guest.png": "05-onboarding-child-name.png",
+  "02-login.png": "13-home-returning.png",
+  "03-login-gate.png": "18-trainer-profile-plus-booking-sheet.png",
+  "04-login-check-your-email.png": "13-home-returning.png",
+  "12-onboarding-profile-ready.png": "14-search.png",
+  "13-home-returning.png": "14-search.png",
+  "14-search.png": "17-trainer-profile.png",
+  "15-search-empty.png": "14-search.png",
+  "16-search-loading.png": "17-trainer-profile.png",
+  "17-trainer-profile.png": "18-trainer-profile-plus-booking-sheet.png",
+  "18-trainer-profile-plus-booking-sheet.png": "22-checkout.png",
+  "19-booking-sheet-fully-booked.png": "18-trainer-profile-plus-booking-sheet.png",
+  "20-booking-sheet-no-hours-none-declared.png": "18-trainer-profile-plus-booking-sheet.png",
+  "21-booking-sheet-fully-requested-at-capacity.png": "18-trainer-profile-plus-booking-sheet.png",
+  "22-checkout.png": "24-booking-requested.png",
+  "23-checkout-hold-expired.png": "17-trainer-profile.png",
+  "24-booking-requested.png": "25-sessions.png",
+  "25-sessions.png": "28-messages.png",
+  "26-sessions-empty.png": "14-search.png",
+  "27-sessions-completed-and-cancelled.png": "30-review.png",
+  "28-messages.png": "30-review.png",
+  "29-messages-empty-thread.png": "25-sessions.png",
+  "30-review.png": "31-review-thanks.png",
+  "31-review-thanks.png": "25-sessions.png",
+  "32-learn.png": "33-portal.png",
+  "33-portal.png": "34-events.png",
+  "34-events.png": "35-store.png",
+  "35-store.png": "36-store-success.png",
+  "36-store-success.png": "37-account.png",
+  "37-account.png": "38-invite.png",
+  "38-invite.png": "05-onboarding-child-name.png",
+  "39-invite-unavailable.png": "01-home-guest.png",
+  "40-join-trainer-signup.png": "41-trainer-onboarding-profile-basics.png",
+  "49-trainer-onboarding-profile-submitted.png": "50-trainer-dashboard-empty.png",
+  "50-trainer-dashboard-empty.png": "51-trainer-notification.png",
+  "51-trainer-notification.png": "52-trainer-dashboard.png",
+  "52-trainer-dashboard.png": "56-feedback.png",
+  "53-trainer-dashboard-roster.png": "54-trainer-dashboard-earnings.png",
+  "54-trainer-dashboard-earnings.png": "55-connect.png",
+  "55-connect.png": "56-feedback.png",
+  "56-feedback.png": "57-feedback-sent.png",
+  "57-feedback-sent.png": "58-admin-home.png",
+  "58-admin-home.png": "59-admin-trainer-verification.png",
+  "59-admin-trainer-verification.png": "60-admin-verification-empty.png",
+  "60-admin-verification-empty.png": "61-admin-disputes.png",
+  "61-admin-disputes.png": "62-admin-reviews-moderation.png",
+};
+
+/* Generated from design/prototype/screens/manifest.json (embedded so the page works from file://). */
+const SCREENS = [
+  {n:1,journey:"guest",name:"Home — guest",file:"01-home-guest.png"},
+  {n:2,journey:"guest",name:"Login",file:"02-login.png"},
+  {n:3,journey:"guest",name:"Login gate",file:"03-login-gate.png"},
+  {n:4,journey:"guest",name:"Login — check your email",file:"04-login-check-your-email.png"},
+  {n:5,journey:"parent-onboarding",name:"Onboarding — child name",file:"05-onboarding-child-name.png"},
+  {n:6,journey:"parent-onboarding",name:"Onboarding — birth year",file:"06-onboarding-birth-year.png"},
+  {n:7,journey:"parent-onboarding",name:"Onboarding — soccer background",file:"07-onboarding-soccer-background.png"},
+  {n:8,journey:"parent-onboarding",name:"Onboarding — training frequency",file:"08-onboarding-training-frequency.png"},
+  {n:9,journey:"parent-onboarding",name:"Onboarding — goals",file:"09-onboarding-goals.png"},
+  {n:10,journey:"parent-onboarding",name:"Onboarding — experience",file:"10-onboarding-experience.png"},
+  {n:11,journey:"parent-onboarding",name:"Onboarding — ambitions",file:"11-onboarding-ambitions.png"},
+  {n:12,journey:"parent-onboarding",name:"Onboarding — profile ready",file:"12-onboarding-profile-ready.png"},
+  {n:13,journey:"parent-booking",name:"Home — returning",file:"13-home-returning.png"},
+  {n:14,journey:"parent-booking",name:"Search",file:"14-search.png"},
+  {n:15,journey:"parent-booking",name:"Search — empty",file:"15-search-empty.png"},
+  {n:16,journey:"parent-booking",name:"Search — loading",file:"16-search-loading.png"},
+  {n:17,journey:"parent-booking",name:"Trainer profile",file:"17-trainer-profile.png"},
+  {n:18,journey:"parent-booking",name:"Trainer profile + booking sheet",file:"18-trainer-profile-plus-booking-sheet.png"},
+  {n:19,journey:"parent-booking",name:"Booking sheet — fully booked",file:"19-booking-sheet-fully-booked.png"},
+  {n:20,journey:"parent-booking",name:"Booking sheet — no hours (none_declared)",file:"20-booking-sheet-no-hours-none-declared.png"},
+  {n:21,journey:"parent-booking",name:"Booking sheet — fully requested (at_capacity)",file:"21-booking-sheet-fully-requested-at-capacity.png"},
+  {n:22,journey:"parent-booking",name:"Checkout",file:"22-checkout.png"},
+  {n:23,journey:"parent-booking",name:"Checkout — hold expired",file:"23-checkout-hold-expired.png"},
+  {n:24,journey:"parent-booking",name:"Booking requested",file:"24-booking-requested.png"},
+  {n:25,journey:"parent-after",name:"Sessions",file:"25-sessions.png"},
+  {n:26,journey:"parent-after",name:"Sessions — empty",file:"26-sessions-empty.png"},
+  {n:27,journey:"parent-after",name:"Sessions — completed & cancelled",file:"27-sessions-completed-and-cancelled.png"},
+  {n:28,journey:"parent-after",name:"Messages",file:"28-messages.png"},
+  {n:29,journey:"parent-after",name:"Messages — empty thread",file:"29-messages-empty-thread.png"},
+  {n:30,journey:"parent-after",name:"Review",file:"30-review.png"},
+  {n:31,journey:"parent-after",name:"Review — thanks",file:"31-review-thanks.png"},
+  {n:32,journey:"parent-after",name:"Learn",file:"32-learn.png"},
+  {n:33,journey:"parent-after",name:"Portal",file:"33-portal.png"},
+  {n:34,journey:"parent-after",name:"Events",file:"34-events.png"},
+  {n:35,journey:"parent-after",name:"Store",file:"35-store.png"},
+  {n:36,journey:"parent-after",name:"Store — success",file:"36-store-success.png"},
+  {n:37,journey:"parent-after",name:"Account",file:"37-account.png"},
+  {n:38,journey:"parent-after",name:"Invite",file:"38-invite.png"},
+  {n:39,journey:"parent-after",name:"Invite — unavailable",file:"39-invite-unavailable.png"},
+  {n:40,journey:"trainer",name:"Join — trainer signup",file:"40-join-trainer-signup.png"},
+  {n:41,journey:"trainer",name:"Trainer onboarding — profile basics",file:"41-trainer-onboarding-profile-basics.png"},
+  {n:42,journey:"trainer",name:"Trainer onboarding — photo & philosophy",file:"42-trainer-onboarding-photo-and-philosophy.png"},
+  {n:43,journey:"trainer",name:"Trainer onboarding — rate, experience & location",file:"43-trainer-onboarding-rate-experience-and-location.png"},
+  {n:44,journey:"trainer",name:"Trainer onboarding — specializations",file:"44-trainer-onboarding-specializations.png"},
+  {n:45,journey:"trainer",name:"Trainer onboarding — age groups & certifications",file:"45-trainer-onboarding-age-groups-and-certifications.png"},
+  {n:46,journey:"trainer",name:"Trainer onboarding — availability",file:"46-trainer-onboarding-availability.png"},
+  {n:47,journey:"trainer",name:"Trainer onboarding — background check",file:"47-trainer-onboarding-background-check.png"},
+  {n:48,journey:"trainer",name:"Trainer onboarding — profile preview",file:"48-trainer-onboarding-profile-preview.png"},
+  {n:49,journey:"trainer",name:"Trainer onboarding — profile submitted",file:"49-trainer-onboarding-profile-submitted.png"},
+  {n:50,journey:"trainer",name:"Trainer dashboard — empty",file:"50-trainer-dashboard-empty.png"},
+  {n:51,journey:"trainer",name:"Trainer notification",file:"51-trainer-notification.png"},
+  {n:52,journey:"trainer",name:"Trainer dashboard",file:"52-trainer-dashboard.png"},
+  {n:53,journey:"trainer",name:"Trainer dashboard — roster",file:"53-trainer-dashboard-roster.png"},
+  {n:54,journey:"trainer",name:"Trainer dashboard — earnings",file:"54-trainer-dashboard-earnings.png"},
+  {n:55,journey:"trainer",name:"Connect",file:"55-connect.png"},
+  {n:56,journey:"trainer",name:"Feedback",file:"56-feedback.png"},
+  {n:57,journey:"trainer",name:"Feedback — sent",file:"57-feedback-sent.png"},
+  {n:58,journey:"admin",name:"Admin — home",file:"58-admin-home.png"},
+  {n:59,journey:"admin",name:"Admin — trainer verification",file:"59-admin-trainer-verification.png"},
+  {n:60,journey:"admin",name:"Admin — verification, empty",file:"60-admin-verification-empty.png"},
+  {n:61,journey:"admin",name:"Admin — disputes",file:"61-admin-disputes.png"},
+  {n:62,journey:"admin",name:"Admin — reviews moderation",file:"62-admin-reviews-moderation.png"},
+];
+
+const JOURNEYS = [
+  ["guest", "Guest & entry"], ["parent-onboarding", "Parent onboarding"], ["parent-booking", "Parent booking"],
+  ["parent-after", "Parent after booking"], ["trainer", "Trainer"], ["admin", "Admin"]
+];
+
+/* ---------------------------------------------------------------------
+   App
+   --------------------------------------------------------------------- */
+const $ = (s, el = document) => el.querySelector(s);
+const mk = (tag, cls, txt) => { const e = document.createElement(tag); if (cls) e.className = cls; if (txt != null) e.textContent = txt; return e; };
+const byFile = new Map(SCREENS.map(s => [s.file, s]));
+const indexOf = new Map(SCREENS.map((s, i) => [s.file, i]));
+const IMG = f => "./screens/" + f;
+
+let cur = null, hist = [], mode = "proto", lastJourney = null;
+
+/* Load-time assertion: every hotspot target must exist in the manifest. */
+(function validateFlow() {
+  const errs = []; let count = 0;
+  for (const [file, spots] of Object.entries(FLOW)) {
+    if (!byFile.has(file)) errs.push(`FLOW key not in manifest: ${file}`);
+    const H = TALL[file] ? TALL[file].h : 844;
+    spots.forEach((h, i) => {
+      count++;
+      if (h.to !== "@back" && !byFile.has(h.to)) errs.push(`${file}[${i}] "${h.label}" -> unknown target ${h.to}`);
+      if (h.x < 0 || h.y < 0 || h.x + h.w > 390.5 || h.y + h.h > H + 0.5) errs.push(`${file}[${i}] "${h.label}" is outside the ${390}x${H} canvas`);
+    });
+  }
+  for (const [a, b] of Object.entries(NEXT)) if (!byFile.has(a) || !byFile.has(b)) errs.push(`NEXT entry invalid: ${a} -> ${b}`);
+  console.assert(errs.length === 0, "[prototype] FLOW validation failed:\n" + errs.join("\n"));
+  if (errs.length) errs.forEach(e => console.error("[prototype] " + e));
+  else console.log(`[prototype] FLOW OK — ${SCREENS.length} screens, ${count} hotspots, all targets exist in the manifest.`);
+  window.__flowErrors = errs; window.__hotspotCount = count;
+})();
+
+/* ---------- layer building ---------- */
+function buildLayer(s) {
+  const t = TALL[s.file];
+  const H = t ? t.h : 844;
+  const layer = mk("div", "layer");
+  const sc = mk("div", "scroller");
+  const canvas = mk("div", "canvas");
+  canvas.style.height = H + "px";
+  const img = new Image();
+  img.src = IMG(s.file); img.alt = s.name; img.draggable = false;
+  img.onerror = () => console.error("[prototype] missing image " + IMG(s.file));
+  canvas.append(img); sc.append(canvas); layer.append(sc);
+
+  let dTop = null, dBot = null;
+  if (t && t.dockTop) { dTop = mk("div", "dock top"); dTop.style.height = t.dockTop + "px"; dTop.style.backgroundImage = `url("${IMG(s.file)}")`; dTop.style.backgroundPosition = "0 0"; layer.append(dTop); }
+  if (t && t.dockBottom) { dBot = mk("div", "dock bottom"); dBot.style.height = t.dockBottom + "px"; dBot.style.backgroundImage = `url("${IMG(s.file)}")`; dBot.style.backgroundPosition = `0 ${-(H - t.dockBottom)}px`; layer.append(dBot); }
+
+  (FLOW[s.file] || []).forEach(h => {
+    let host = canvas, top = h.y;
+    if (dTop && h.y + h.h <= t.dockTop) host = dTop;
+    else if (dBot && h.y >= H - t.dockBottom) { host = dBot; top = h.y - (H - t.dockBottom); }
+    const b = mk("button", "hs");
+    b.type = "button";
+    b.style.cssText = `left:${h.x}px;top:${top}px;width:${h.w}px;height:${h.h}px`;
+    b.title = h.label + (h.to === "@back" ? " (back)" : " → " + byFile.get(h.to).name);
+    b.setAttribute("aria-label", b.title);
+    b.append(mk("span", "t", h.label));
+    b.addEventListener("click", () => go(h.to));
+    host.append(b);
+  });
+  return layer;
+}
+
+/* ---------- navigation ---------- */
+function go(file, opts = {}) {
+  if (file === "@back") return back();
+  if (!byFile.has(file)) return console.error("[prototype] unknown screen " + file);
+  if (opts.reset) hist = [];
+  else if (cur && cur !== file && opts.push !== false) hist.push(cur);
+  show(file, opts);
+}
+function back() {
+  if (!hist.length) return toast("Nothing to go back to");
+  show(hist.pop());
+}
+function show(file, opts = {}) {
+  const s = byFile.get(file);
+  const stage = $("#screen");
+  const layer = buildLayer(s);
+  if (cur && !opts.instant) layer.classList.add("entering");
+  while (stage.children.length > 1) stage.firstChild.remove();
+  stage.append(layer);
+  if (layer.classList.contains("entering")) {
+    void layer.offsetWidth;               // commit opacity:0, then fade in
+    layer.classList.remove("entering");
+    setTimeout(() => {                     // drop only the layers underneath this one
+      let p = layer.previousElementSibling;
+      while (p) { const q = p.previousElementSibling; p.remove(); p = q; }
+    }, 220);
+  }
+  else while (layer.previousElementSibling) layer.previousElementSibling.remove();
+  cur = file;
+  history.replaceState(null, "", "#" + String(s.n).padStart(2, "0"));
+  updateChrome();
+}
+function nextOf(file) {
+  if (NEXT[file]) return byFile.get(NEXT[file]);
+  const i = indexOf.get(file);
+  return i < SCREENS.length - 1 ? SCREENS[i + 1] : null;
+}
+function step(d) {
+  const i = indexOf.get(cur) + d;
+  if (i < 0 || i >= SCREENS.length) return;
+  go(SCREENS[i].file);
+}
+
+/* ---------- chrome ---------- */
+function updateChrome() {
+  const s = byFile.get(cur);
+  $("#btn-back").disabled = !hist.length;
+  const t = TALL[cur];
+  $("#caption").innerHTML = `<span><b>${String(s.n).padStart(2, "0")}</b> of ${SCREENS.length}</span><span>${esc(s.name)}</span>` + (t ? `<span class="scrolls">↕ scrolls inside the phone</span>` : "");
+  const nx = nextOf(cur);
+  const nc = $("#nextchip");
+  if (nx) { nc.innerHTML = `Next: ${esc(nx.name)}<small>${String(nx.n).padStart(2, "0")} · ${esc(jLabel(nx.journey))}</small>`; nc.onclick = () => go(nx.file); }
+  else { const f = SCREENS[0]; nc.innerHTML = `End of the tour — restart<small>Back to ${esc(f.name)}</small>`; nc.onclick = () => go(f.file, { reset: true }); }
+  document.querySelectorAll(".jlist button").forEach(b => { if (b.dataset.file === cur) b.setAttribute("aria-current", "true"); else b.removeAttribute("aria-current"); });
+  if (s.journey !== lastJourney) { document.querySelectorAll(".journey").forEach(j => j.classList.toggle("open", j.dataset.j === s.journey)); lastJourney = s.journey; }
+  const active = $('.jlist button[aria-current="true"]');
+  if (active) active.scrollIntoView({ block: "nearest" });
+  document.querySelectorAll(".bcard").forEach(c => c.classList.toggle("current", c.dataset.file === cur));
+}
+const esc = s => s.replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const jLabel = j => (JOURNEYS.find(x => x[0] === j) || [, j])[1];
+let toastT;
+function toast(msg) { const t = $("#toast"); t.textContent = msg; t.classList.add("show"); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove("show"), 1400); }
+
+function buildRail() {
+  const wrap = $("#journeys");
+  JOURNEYS.forEach(([key, label]) => {
+    const items = SCREENS.filter(s => s.journey === key);
+    const j = mk("div", "journey"); j.dataset.j = key;
+    const head = mk("div", "jhead");
+    const caret = mk("span", "jcaret", "▶");
+    const title = mk("div", "jtitle"); title.textContent = label; title.append(mk("small", null, `${items.length} screens`));
+    const start = mk("button", "start", "Start"); start.title = `Start at ${items[0].name}`;
+    start.addEventListener("click", e => { e.stopPropagation(); go(items[0].file, { reset: true }); });
+    head.append(caret, title, start);
+    head.addEventListener("click", () => j.classList.toggle("open"));
+    const list = mk("ul", "jlist");
+    items.forEach(s => {
+      const li = mk("li"); const b = mk("button");
+      b.dataset.file = s.file; b.append(mk("span", "num", String(s.n).padStart(2, "0")), mk("span", null, s.name));
+      b.addEventListener("click", () => go(s.file));
+      li.append(b); list.append(li);
+    });
+    j.append(head, list); wrap.append(j);
+  });
+}
+
+/* ---------- flow board ---------- */
+function buildBoard() {
+  const board = $("#board");
+  JOURNEYS.forEach(([key, label]) => {
+    const items = SCREENS.filter(s => s.journey === key);
+    const sec = mk("div", "bj");
+    const h = mk("h2", null, label); h.append(mk("small", null, `${items.length} screens · ${String(items[0].n).padStart(2, "0")}–${String(items[items.length - 1].n).padStart(2, "0")}`));
+    const row = mk("div", "brow");
+    items.forEach(s => {
+      const card = mk("div", "bcard"); card.dataset.file = s.file;
+      const th = mk("button", "bthumb"); th.title = `Open ${s.name} in the prototype`;
+      const im = new Image(); im.src = IMG(s.file); im.alt = s.name; im.draggable = false;
+      th.append(im);
+      if (TALL[s.file]) th.append(mk("span", "tallbadge", "scrolls ↕"));
+      th.addEventListener("click", () => { setMode("proto"); go(s.file, { reset: true }); });
+      const nm = mk("div", "bname"); nm.append(mk("span", "num", String(s.n).padStart(2, "0")), mk("span", null, s.name));
+      const chips = mk("div", "chips");
+      const seen = new Set(); const targets = [];
+      (FLOW[s.file] || []).forEach(hs => {
+        if (hs.to === "@back" || hs.to === s.file || /^Tab ·/.test(hs.label) || hs.label === "Back" || seen.has(hs.to)) return;
+        seen.add(hs.to); targets.push(hs);
+      });
+      targets.slice(0, 4).forEach(hs => {
+        const c = mk("button", "chip", "→ " + byFile.get(hs.to).name); c.title = hs.label;
+        c.addEventListener("click", () => { setMode("proto"); go(hs.to, { reset: true }); });
+        chips.append(c);
+      });
+      if (targets.length > 4) chips.append(mk("span", "chip more", `+${targets.length - 4} more`));
+      if (!targets.length) chips.append(mk("span", "chip end", "tabs / back only"));
+      card.append(th, nm, chips); row.append(card);
+    });
+    sec.append(h, row); board.append(sec);
+  });
+}
+
+function setMode(m) {
+  mode = m;
+  document.body.classList.toggle("mode-board", m === "board");
+  $("#m-proto").setAttribute("aria-pressed", m === "proto");
+  $("#m-board").setAttribute("aria-pressed", m === "board");
+  if (m === "board") { const c = $(".bcard.current"); if (c) c.scrollIntoView({ block: "center", inline: "center" }); }
+  else fit();
+}
+function setHotspots(on) {
+  document.body.classList.toggle("hs-on", on);
+  $("#btn-hs").setAttribute("aria-pressed", on);
+}
+
+/* ---------- scale phone to fit the stage ---------- */
+function fit() {
+  const st = $("#stage"); if (!st.clientHeight) return;
+  const availH = st.clientHeight - 32 - 30, availW = st.clientWidth - 32;
+  const scale = Math.max(.35, Math.min(availH / 864, availW / 410, 1.7));
+  $("#phone").style.transform = `scale(${scale})`;
+  const pb = $("#phonebox"); pb.style.width = 410 * scale + "px"; pb.style.height = 864 * scale + "px";
+}
+new ResizeObserver(fit).observe($("#stage"));
+
+/* ---------- events ---------- */
+$("#m-proto").onclick = () => setMode("proto");
+$("#m-board").onclick = () => setMode("board");
+$("#btn-back").onclick = back;
+$("#btn-hs").onclick = () => setHotspots(!document.body.classList.contains("hs-on"));
+addEventListener("keydown", e => {
+  if (e.metaKey || e.ctrlKey || e.altKey) return;
+  if (/^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)) return;
+  const k = e.key;
+  if (k === "h" || k === "H") { setHotspots(!document.body.classList.contains("hs-on")); }
+  else if (k === "b" || k === "B") { setMode(mode === "board" ? "proto" : "board"); }
+  else if (k === "Escape" || k === "Backspace") { if (mode === "proto") { e.preventDefault(); back(); } else setMode("proto"); }
+  else if (k === "ArrowRight" && mode === "proto") { e.preventDefault(); step(1); }
+  else if (k === "ArrowLeft" && mode === "proto") { e.preventDefault(); step(-1); }
+});
+
+buildRail(); buildBoard(); fit();
+const startN = parseInt((location.hash || "").replace("#", ""), 10);
+if (location.hash === "#board") setMode("board");
+const startScreen = SCREENS.find(s => s.n === startN) || SCREENS[0];
+show(startScreen.file, { instant: true });
+</script>
+</body>
+</html>
